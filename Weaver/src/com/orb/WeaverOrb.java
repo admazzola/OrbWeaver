@@ -65,18 +65,18 @@ public class WeaverOrb extends Thread {
 
 	}
 
-	boolean checkedVersion = false;
+	boolean shouldCheckVersion = true;
 	boolean seeding = false;
 
 	public void update() throws Exception {
 
 		if (fileHash != null) {
-			if (!checkedVersion) {
+			if (shouldCheckVersion) {
 
 				boolean hasCurrentVersion = versionManager.checkVersion(fileHash);
 				
 				
-				checkedVersion = true;
+				shouldCheckVersion = false;
 
 				seeding = hasCurrentVersion;// if my files hash matches the hash
 											// given by a master node, seed to
@@ -118,6 +118,10 @@ public class WeaverOrb extends Thread {
 						}
 
 					}
+					
+					
+					chunkManager.updateLeeching();
+					//shouldCheckVersion = true; //keep checking version as you update leeching until you become a seeder
 					
 				}
 

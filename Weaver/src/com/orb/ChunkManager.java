@@ -57,7 +57,7 @@ public class ChunkManager {
 	
 	//for leecher, from seeder
 	public void setTotalChunkCount(int count){
-		count = totalChunkCount;
+		totalChunkCount = count;
 	}
 	
 	
@@ -73,6 +73,7 @@ public class ChunkManager {
 		return nextChunkNeededCounter - 1;
 	}
 
+	
 	public void receiveChunk(Chunk newchunk) {
 		chunks[newchunk.id] = (Chunk) newchunk.clone();
 	}
@@ -83,8 +84,44 @@ public class ChunkManager {
 		return chunks[id];
 	}
 	
+	float chunkProgress = 0f;
+	public void updateLeeching(){
+		int currentCompletedChunks = countCompletedChunks();
+		
+		if(currentCompletedChunks < totalChunkCount){
+			chunkProgress = currentCompletedChunks / (float)totalChunkCount;
+			System.out.println("Still need more chunks. Only have " + currentCompletedChunks );
+		}else{
+			chunkProgress = 1f;
+			
+			try {
+				writeFileFromChunk();
+				
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			weaverOrb.shouldCheckVersion = true;
+		}
+		
+		
+		
+		
+	}
 	
-	//STILL NEED TO IMPLEMENT THIS
+	private int countCompletedChunks() {
+		int count = 0;
+		for(Chunk chunk : chunks){
+			if(chunk!=null && chunk.getData()!=null){
+				count++;
+			}			
+		}
+		
+		return count;
+	}
+
+	
 	public void writeFileFromChunk() throws Exception{//done by leecher, right before they become a seeder
 		File myfile = new File(  weaverOrb.getFilePath() );
 		
@@ -101,6 +138,11 @@ public class ChunkManager {
 		FileUtils.writeByteArrayToFile(myfile, allbytes);
 		
 		outputStream.close();
+	}
+
+	
+	public float getChunkProgress() {
+		return chunkProgress;
 	}
 
 	
