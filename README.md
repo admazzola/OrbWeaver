@@ -5,7 +5,7 @@ Requires Libraries: Google's guava-16.0.1.jar, Apache's commons-io-2.4.jar
 
 This single-file P2P network API was originally written to provide P2P patches to the indie game Sands of Osiris.
 
-This API is primarily broken into two part: Weaver, and WeaverOrb (or just Orb)
+This API can be divided into two part: Weaver, and WeaverOrb (or just Orb)
 
 The Weaver portion accepts two inputs: int Port; string[] MasterNodeIPAddresses. It outputs a Node[] list, which is a list of all other PCs running this copy of Weaver using the same port and Master Servers.
 
