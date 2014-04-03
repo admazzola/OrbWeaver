@@ -31,4 +31,21 @@ public class NodeInfo implements Serializable {
 		
 		return port;
 	}
+	
+	@Override
+	public boolean equals(Object o){
+		if(o instanceof NodeInfo){
+			if(((NodeInfo)o).address!=null && ((NodeInfo)o).address.equals(address) && ((NodeInfo)o).port == port ){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	@Override
+	public String toString(){
+		return "NodeInfo: address = " + address + ",port = " + port;
+	}
+	
 }

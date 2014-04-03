@@ -2,6 +2,7 @@ package com;
 
 import java.util.List;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -42,28 +43,28 @@ public class Weaver extends Thread {
 
 	Node[] otherNodes = new Node[1000];
 
-	String[] masterNodeAddresses = new String[100];
+	NodeInfo[] masterNodeAddresses = new NodeInfo[100];
 
 	Node myNode;
 
 	// pass in addresses of master nodes so there is a starting point (starting
 	// list)
 	// master nodes must be running weaver
-	public Weaver(String[] masterNodeAddresses) {
+	public Weaver(NodeInfo[] masterNodeInfo) {
 		this.setName("Weaver Thread");
 
-		this.masterNodeAddresses = masterNodeAddresses;
+		this.masterNodeAddresses = masterNodeInfo;
 		// maintains propogated connections with other people
 
 		// seeds or leeches
 	}
 
 	// INPUTS - port to use, IP addresses of master nodes
-	public Weaver(int port, String[] masterNodeAddresses) {
+	public Weaver(NodeInfo[] masterNodeInfo,int port) {
 		this.setName("Weaver Thread");
 
 		this.port = port;
-		this.masterNodeAddresses = masterNodeAddresses;
+		this.masterNodeAddresses = masterNodeInfo;
 
 	}
 
@@ -126,18 +127,26 @@ public class Weaver extends Thread {
 	int nodeCount = 0;
 
 	private void startServer() throws Exception {
+		
+		
 
 		myNode = new Node(getMyIPAddress(), port, this);
 		// addNode(myServer);
 
 		for (int i = 0; i < masterNodeAddresses.length; i++) {
 			if (masterNodeAddresses[i] != null) {
-				addNode(new Node(masterNodeAddresses[i], port, this));
+				if(! myNode.getNodeInfo().equals( masterNodeAddresses[i] ) ){
+				addNode(new Node(masterNodeAddresses[i], this));
+				}
 			}
 		}
 
+		try{
 		sSock = new ServerSocket(port);
-
+		}catch(Exception e){
+			System.err.println("port already bound!");
+		}
+		
 		final Weaver weav = this;
 
 		new Thread(new Runnable() {
@@ -188,8 +197,8 @@ public class Weaver extends Thread {
 	}
 
 	private String getMyIPAddress() throws Exception {
-
-		return IPChecker.getIp();
+		return InetAddress.getLocalHost().getHostAddress(); //local
+		//return IPChecker.getIp();  //remote 
 	}
 
 	private void addNode(Node newNode) {
@@ -250,10 +259,9 @@ public class Weaver extends Thread {
 
 	public void receiveFileHashMessage(NodeFileHashMessage mess) {
 
-		String hash = mess.getHash();
 
-		getRegisteredOrb().setFileHash(hash);
-
+		getRegisteredOrb().setFileHash(mess.getHash());
+		getRegisteredOrb().setTotalChunkCount(mess.getTotalChunkCount());
 	}
 
 	public void receiveFileChunkMessage(
@@ -261,7 +269,7 @@ public class Weaver extends Thread {
 		if (!isSeeding) {
 			this.getRegisteredOrb().getChunkManager()
 					.receiveChunk(nodeFileChunkMessage.getChunk());
-			System.out.println("Got file chunk");
+			
 		} else {
 			System.err.println("Got file chunk, but I am a seeder!");
 		}
@@ -285,7 +293,7 @@ public class Weaver extends Thread {
 			}
 
 			System.out.println("Got file chunk request by "
-					+ nodeFileChunkRequestMessage.senderInfo);
+					+ nodeFileChunkRequestMessage.senderInfo + " chunkId = " + nodeFileChunkRequestMessage.chunkId );
 
 		} else {
 			System.err.println("Got file chunk request, but I am a leecher!");
@@ -297,7 +305,7 @@ public class Weaver extends Thread {
 		return myNode.getNodeInfo();
 	}
 
-	public String[] getMasterAddresses() {
+	public NodeInfo[] getMasterAddresses() {
 		return masterNodeAddresses;
 	}
 
@@ -314,7 +322,8 @@ public class Weaver extends Thread {
 
 		chunkRequestQueueLock.lock();
 		try {
-			queuedChunkRequest.toArray(array);
+			array = new QueuedChunkRequest[queuedChunkRequest.size()];
+			queuedChunkRequest.toArray(array);//fill the array
 		} finally {
 			chunkRequestQueueLock.unlock();
 		}
@@ -331,6 +340,14 @@ public class Weaver extends Thread {
 			chunkRequestQueueLock.unlock();
 		}
 
+	}
+
+	public void setIsSeeding(boolean isSeeding) {
+		this.isSeeding = isSeeding;
+	}
+	
+	public boolean getIsSeeding(){
+		return isSeeding;
 	}
 
 }

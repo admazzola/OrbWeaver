@@ -24,11 +24,12 @@ public class NodeFileHashMessage extends Message implements Serializable {
 		
 	}
 	
-	
+	int totalChunkCount = 0;
 	String hash;
 	
-	public NodeFileHashMessage(String hash){
+	public NodeFileHashMessage(String hash, int chunkCount){
 		this.hash = hash;
+		this.totalChunkCount = chunkCount;
 	}
 
 	public String getHash() {
@@ -36,6 +37,9 @@ public class NodeFileHashMessage extends Message implements Serializable {
 		return hash;
 	}
 	
+	public int getTotalChunkCount(){
+		return totalChunkCount;
+	}
 	
 	
 

@@ -11,8 +11,7 @@ public class IPChecker {
         URL whatismyip = new URL("http://checkip.amazonaws.com");
         BufferedReader in = null;
         try {
-            in = new BufferedReader(new InputStreamReader(
-                    whatismyip.openStream()));
+            in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
             String ip = in.readLine();
             return ip;
         } finally {

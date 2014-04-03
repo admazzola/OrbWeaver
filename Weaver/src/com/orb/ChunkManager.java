@@ -47,7 +47,7 @@ public class ChunkManager {
 				end = chunkBytes.length ;
 			}
 								
-			chunks[totalChunkCount] = new Chunk(i,Arrays.copyOfRange(chunkBytes, start, end ));
+			chunks[totalChunkCount] = new Chunk(totalChunkCount,Arrays.copyOfRange(chunkBytes, start, end ));
 			totalChunkCount++;
 		}
 		
@@ -58,13 +58,17 @@ public class ChunkManager {
 	//for leecher, from seeder
 	public void setTotalChunkCount(int count){
 		totalChunkCount = count;
+		
+		if(chunks == null){//dont delete chunks
+		chunks = new Chunk[count];
+		}
 	}
 	
 	
 	int nextChunkNeededCounter = 0; // for leecher
 	public int getNextLeechChunkId(){
 
-		if(nextChunkNeededCounter > totalChunkCount){
+		if(nextChunkNeededCounter >= totalChunkCount){
 			nextChunkNeededCounter = 0; // cycle around
 		}
 		
@@ -76,6 +80,9 @@ public class ChunkManager {
 	
 	public void receiveChunk(Chunk newchunk) {
 		chunks[newchunk.id] = (Chunk) newchunk.clone();
+		
+		System.out.println("Got file chunk " + newchunk.id);
+		
 	}
 	
 	
@@ -113,7 +120,8 @@ public class ChunkManager {
 	private int countCompletedChunks() {
 		int count = 0;
 		for(Chunk chunk : chunks){
-			if(chunk!=null && chunk.getData()!=null){
+			if(chunk!=null ){
+				System.out.println("have chunk " + chunk.id);
 				count++;
 			}			
 		}
@@ -143,6 +151,11 @@ public class ChunkManager {
 	
 	public float getChunkProgress() {
 		return chunkProgress;
+	}
+
+	public int getTotalChunkCount() {
+		
+		return totalChunkCount;
 	}
 
 	

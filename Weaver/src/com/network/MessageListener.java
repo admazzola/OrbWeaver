@@ -1,7 +1,9 @@
 package com.network;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+
 import com.Weaver;
 import com.orb.NodeFileChunkMessage;
 import com.orb.NodeFileChunkRequestMessage;
@@ -29,20 +31,24 @@ public class MessageListener extends Thread{
 	
 	@Override
 	public void run(){
+		
+		if(input == null){ //messy but whatever
+		
 		try {
 			input = new ObjectInputStream(socket.getInputStream()); //waits until the remote output connected up
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
-		
+		}	
+		}
 		
 		
 		while(active){
 			
 			try {
 			processMessage(input);
-			} catch (Exception e) {				
+			} catch (Exception e) {	
+				active = false;
 				e.printStackTrace();
 			}	
 			

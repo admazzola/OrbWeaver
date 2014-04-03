@@ -41,6 +41,7 @@ public class Node {
 			input = new ObjectInputStream(socket.getInputStream());
 			output = new ObjectOutputStream(socket.getOutputStream());
 			System.out.println("New client connected to port " + sock.getPort());
+			messageListener = new MessageListener(input,socket,this,weaver);
 			
 			this.port = sock.getPort();
 		} catch (Exception e) {
@@ -56,16 +57,23 @@ public class Node {
 		this.address = addr;
 		this.port = port;
 		
-		System.out.println( "addr " + addr);
-		
+				
 	}
 
 	
+	public Node(NodeInfo nodeInfo, Weaver weaver) {
+		this.weaver = weaver;
+		
+		this.address = nodeInfo.getAddress();
+		this.port = nodeInfo.getPort();
+	}
+
+
 	final Lock lock = new ReentrantLock();
 
 	MessageListener messageListener;
 	
-	public  void update() throws Exception {
+	public void update() throws Exception {
 		
 		//System.out.println(address);
 	
@@ -74,18 +82,24 @@ public class Node {
 		if(socket == null){
 			//If they never connected to me, connect from the other direction
 			
-			socket = new Socket(address,port);
+			try{
+				socket = new Socket(address,port);
 			
 			
-			messageListener = new MessageListener(input,socket,this,weaver);
+				messageListener = new MessageListener(input,socket,this,weaver);
 			
-			output = new ObjectOutputStream(socket.getOutputStream());
 			
+				output = new ObjectOutputStream(socket.getOutputStream());
+			
+			}catch(Exception e){
+				System.err.println("could not connect to " + address + ":" + port);
+			}
 			
 			//sendMessage(new NodeHelloMessage(weaver.getMyNodeInfo()) ); //send this at diff time?
 			
 		}else{
 			
+			System.out.println( "saying hello to node " + this );
 			sendMessage(new NodeHelloMessage(weaver.getMyNodeInfo()) );//sends my info
 			
 			
@@ -120,13 +134,13 @@ public class Node {
 				String fileHash = weaver.getRegisteredOrb().getFileHash();
 
 					if(fileHash!=null){
-						sendMessage(new NodeFileHashMessage(fileHash ) );
+						
+						
+						sendMessage(new NodeFileHashMessage(fileHash, weaver.getRegisteredOrb().getChunkManager().getTotalChunkCount() ) );
 					//sends the correct file hash to others so they know to start seeding or leeching.
 					}
 					
 			}
-			
-			
 			
 			
 			
@@ -142,6 +156,7 @@ public class Node {
 		int chunkId = weaver.getRegisteredOrb().getChunkManager().getNextLeechChunkId();
 		if(socket != null){
 			if(chunkId > -1){
+				System.out.println( "requesting chunk from " + address + ":" + port);
 				//ask this seeder node for the next needed chunk and send them my info
 				sendMessage(new NodeFileChunkRequestMessage( chunkId, weaver.getMyNodeInfo() ) );
 			}
@@ -151,12 +166,22 @@ public class Node {
 	
 	public void sendMessage(Message m) throws Exception {
 		
-			output.writeObject(m);
+			if(! weaver.getMyNodeInfo().equals(getNodeInfo()) ){
+			System.out.println( getNodeInfo() );
+			
+				try{
+				output.writeObject(m);
+				}catch(Exception e){
+					//output.close();
+					
+					//this.setActive(false);
+				}
 		
+			}
 	}
 
 
-	public NodeInfo getNodeInfo(){
+	public NodeInfo getNodeInfo(){ //broken?
 		if(address == null){
 			return null;
 		}
@@ -172,7 +197,7 @@ public class Node {
 		address = mess.nodeInfo.address;
 		port = mess.nodeInfo.port;
 		
-		System.out.println(" got new port and address " + address + " " + port );
+		System.out.println(" got new node info... port and address: " + address + " " + port );
 		
 		
 	}
@@ -199,13 +224,13 @@ public class Node {
 
 	public boolean isMasterNode() {
 		
-		for(String addr: weaver.getMasterAddresses() ){
-			if(this.address.equals(addr)){
+		for(NodeInfo info: weaver.getMasterAddresses() ){
+			System.out.println(this.address + " " + this.port );
+			if(this.address.equals(info.getAddress()) && this.port == info.getPort()){
 				return true;
 			}
 			
 		}
-					
 		
 		return false;
 	}
