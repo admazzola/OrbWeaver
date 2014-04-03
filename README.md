@@ -15,7 +15,7 @@ The intended use is as follows:
 
 Weaver and Orb are implemented in your application (like a game launcher/patcher maybe?) like this:
 
---BEGIN SAMPLE CODE--
+
 
     int PORT = 34567; //change this
     String MASTER_SERVER_IP_1 = "1.1.1.1"; //change this.. can have anywhere from 1 to infinite master servers
@@ -23,15 +23,15 @@ Weaver and Orb are implemented in your application (like a game launcher/patcher
     String PATH_TO_FILE = "C:" + "//" + test.txt"; //change this
     
 
-    Weaver weaver = new Weaver( PORT, new String[]{ MASTER_SERVER_IP_1, MASTER_SERVER_IP_2 } );
+    Weaver weaver = new Weaver( PORT, new NodeInfo[]{ new NodeInfo(MASTER_SERVER_IP_1,PORT), new NodeInfo(MASTER_SERVER_IP_2,PORT) } );
                 
-    WeaverOrb orb = new WeaverOrb( PATH_TO_FILE, weaver );
-		orb.start();		 
+	 WeaverOrb orb = new WeaverOrb( PATH_TO_FILE, weaver );
+	orb.start();		 
 		      
-		weaver.registerOrb(orb);
-		weaver.start();
+	weaver.registerOrb(orb);
+	weaver.start();
 		
---END SAMPLE CODE--
+
 
 Once the library and this code has been implemented, master servers (master nodes) have to be set up.  They do not have to be extremely powerful, but they are required to get the P2P network up and running while it is in its infancy.
 
