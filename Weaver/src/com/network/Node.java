@@ -104,9 +104,9 @@ public class Node {
 			
 				messageListener = new MessageListener(input,socket,this,weaver);
 				
-				UDPsocket = new DatagramSocket(port);//2232
-				chunkListener = new ChunkListener(UDPsocket,this,weaver);
-			
+				UDPsocket = new DatagramSocket(port);//2232				
+				chunkListener = new ChunkListener(UDPsocket,this,weaver); System.out.println("listening for chunks on "+port);
+			 
 				output = new ObjectOutputStream(socket.getOutputStream());
 			
 			}catch(Exception e){
@@ -144,9 +144,9 @@ public class Node {
 	
 	String lastSentHash = null;
 	public void updateSeeding() throws Exception{//from orb
-		//if(!isActive()){
-		//	return;
-		///}
+		if(!isActive()){
+			return;
+		}
 		
 		if(socket != null){
 			
@@ -167,7 +167,7 @@ public class Node {
 			
 			
 		}else{
-			//this.setActive(false);
+			this.setActive(false);
 			System.err.println("cannot seed, no socket connection");			
 		}
 		
@@ -208,7 +208,7 @@ public class Node {
 					byte[] data = Weaver.serialize(m);
 					DatagramPacket packet = new DatagramPacket(data,data.length,InetAddress.getByName(address),weaver.getMyNodeInfo().getPort());
 					UDPsocket.send(packet);
-					System.out.println("sending chunk to " + (port+1));
+					System.out.println("sending chunk to " + (weaver.getMyNodeInfo().getPort()));
 				}
 			}
 	}

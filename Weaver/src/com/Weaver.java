@@ -37,7 +37,7 @@ import com.orb.WeaverOrb;
 
 public class Weaver extends Thread {
 	
-	public static final boolean USE_LOCAL_ADDRESS = true;
+	public static final boolean USE_LOCAL_ADDRESS = false;
 
 	ServerSocket sSock;
 

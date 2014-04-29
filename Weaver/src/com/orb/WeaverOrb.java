@@ -120,7 +120,7 @@ public class WeaverOrb extends Thread {
 					weaver.setStatus(WeaverStatus.SEEDING);
 					
 					if(weaver.getQueuedChunkRequests()!=null){
-						System.out.println( " have a queued chunk request ");
+						
 					for( QueuedChunkRequest qcr :   weaver.getQueuedChunkRequests()){
 						if(qcr != null && getNodeFromInfo(qcr.senderInfo)!=null  ){
 							System.out.println("sending chunk message "+ qcr.chunkId);
