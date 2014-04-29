@@ -15,7 +15,7 @@ public class ChunkManager {
 	}
 	
 	Chunk chunks[];
-	static final int CHUNK_LENGTH = 65000;
+	public static final int CHUNK_LENGTH = 32000;
 	
 	int totalChunkCount = -1;
 	

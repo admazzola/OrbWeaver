@@ -24,6 +24,7 @@ public class NodeFileChunkMessage extends Message implements Serializable {
 	
 	public NodeFileChunkMessage(Chunk chunk){
 		this.chunk=chunk;
+		setReliable(false);
 	}
 
 

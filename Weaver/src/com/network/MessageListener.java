@@ -103,15 +103,6 @@ public class MessageListener extends Thread{
 			}
 
 
-			if(obj instanceof NodeFileChunkMessage  ){//get pieces of the file ...from seeder to leecher
-				
-				System.out.println( " got file chunk message ");
-				
-				weaver.receiveFileChunkMessage(((NodeFileChunkMessage)obj) );  //threaded :o	
-				
-				
-			}
-			
 			
 			
 			

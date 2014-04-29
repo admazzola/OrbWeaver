@@ -3,6 +3,9 @@ package com.network;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -30,6 +33,7 @@ public class Node {
 	boolean active = true;
 
 	private Socket socket;
+	private DatagramSocket UDPsocket;
 	private  ObjectInputStream input = null;
 	private  ObjectOutputStream output = null;
 	
@@ -42,12 +46,18 @@ public class Node {
 		
 		try {
 			this.socket = sock;
+			this.address = sock.getInetAddress().getHostAddress();
+			this.port = sock.getPort();
+			
 			input = new ObjectInputStream(socket.getInputStream());
 			output = new ObjectOutputStream(socket.getOutputStream());
 			System.out.println("New client connected to port " + sock.getPort());
 			messageListener = new MessageListener(input,socket,this,weaver);
 			
-			this.port = sock.getPort();
+			UDPsocket = new DatagramSocket();
+			
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -77,6 +87,7 @@ public class Node {
 	final Lock lock = new ReentrantLock();
 
 	MessageListener messageListener;
+	ChunkListener chunkListener;
 	
 	public void update() throws Exception {
 		
@@ -92,7 +103,9 @@ public class Node {
 			
 			
 				messageListener = new MessageListener(input,socket,this,weaver);
-			
+				
+				UDPsocket = new DatagramSocket(port);//2232
+				chunkListener = new ChunkListener(UDPsocket,this,weaver);
 			
 				output = new ObjectOutputStream(socket.getOutputStream());
 			
@@ -187,13 +200,16 @@ public class Node {
 	
 	public void sendMessage(Message m) throws Exception {
 		System.out.println("sending message "+m.getClass().getName());
-			if(! weaver.getMyNodeInfo().equals(getNodeInfo()) ){
-		
-			
+			if(! weaver.getMyNodeInfo().equals(getNodeInfo()) ){	
 				
-				output.writeObject(m);
-				
-		
+				if(m.isReliable()){
+					output.writeObject(m);
+				}else{
+					byte[] data = Weaver.serialize(m);
+					DatagramPacket packet = new DatagramPacket(data,data.length,InetAddress.getByName(address),weaver.getMyNodeInfo().getPort());
+					UDPsocket.send(packet);
+					System.out.println("sending chunk to " + (port+1));
+				}
 			}
 	}
 

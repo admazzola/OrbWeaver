@@ -12,4 +12,11 @@ public class Message implements Serializable{
 		
 	}
 
+	boolean reliable = true;
+	public boolean isReliable() {
+		return reliable;
+	}
+	public void setReliable(boolean reliable) {
+		this.reliable = reliable;
+	}
 }

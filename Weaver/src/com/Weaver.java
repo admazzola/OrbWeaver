@@ -1,6 +1,10 @@
 package com;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,6 +36,8 @@ import com.orb.WeaverOrb;
  */
 
 public class Weaver extends Thread {
+	
+	public static final boolean USE_LOCAL_ADDRESS = true;
 
 	ServerSocket sSock;
 
@@ -155,6 +161,7 @@ public class Weaver extends Thread {
 			if (masterNodeAddresses[i] != null) {
 				if(! myNode.getNodeInfo().equals( masterNodeAddresses[i] ) ){
 				addNode(new Node(masterNodeAddresses[i], this),true);
+				System.out.println("adding node from init args master list");
 				}
 			}
 		}
@@ -176,7 +183,7 @@ public class Weaver extends Thread {
 						Socket clientSocket = sSock.accept();
 
 						addNode(new Node(clientSocket, weav),true);
-
+						System.out.println("adding node from connection");
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -215,8 +222,12 @@ public class Weaver extends Thread {
 	}
 
 	private String getMyIPAddress() throws Exception {
-		//return InetAddress.getLocalHost().getHostAddress(); //local
+		if(USE_LOCAL_ADDRESS){
+		return InetAddress.getLocalHost().getHostAddress(); //local
+		}else{
 		return IPChecker.getIp();  //remote 
+		}
+		
 	}
 
 	private void addNode(Node newNode, boolean force) {
@@ -283,6 +294,7 @@ public class Weaver extends Thread {
 		for (NodeInfo info : newNodes) {
 			if (info != null) {
 				addNode(new Node(info.getAddress(), info.getPort(), this),false);
+				System.out.println("adding node from list message");
 			}
 		}
 
@@ -386,5 +398,18 @@ public class Weaver extends Thread {
 	public void setStatus(WeaverStatus status) {
 		this.currentStatus = status;
 	}
+	
+	public static byte[] serialize(Object obj) throws IOException {
+	    ByteArrayOutputStream out = new ByteArrayOutputStream();
+	    ObjectOutputStream os = new ObjectOutputStream(out);
+	    os.writeObject(obj);
+	    return out.toByteArray();
+	}
 
+	public static Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
+	    ByteArrayInputStream in = new ByteArrayInputStream(data);
+	    ObjectInputStream is = new ObjectInputStream(in);
+	    return is.readObject();
+	}
+	
 }

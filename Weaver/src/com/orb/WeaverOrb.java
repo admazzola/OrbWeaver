@@ -185,7 +185,7 @@ public class WeaverOrb extends Thread {
 			Thread.sleep(1000);
 		}
 		
-		Thread.sleep(20);//breaks if any slower.. need to make sure a seeder is only working on one packet at a time for me
+		Thread.sleep(10);//breaks if any slower.. need to make sure a seeder is only working on one packet at a time for me
 
 	}
 

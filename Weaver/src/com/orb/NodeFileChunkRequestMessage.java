@@ -26,6 +26,7 @@ public class NodeFileChunkRequestMessage extends Message implements Serializable
 	public NodeFileChunkRequestMessage(int id, NodeInfo info){
 		chunkId=id;
 		senderInfo = info;
+		
 	}
 	
 	
