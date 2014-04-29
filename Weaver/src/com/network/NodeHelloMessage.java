@@ -9,7 +9,7 @@ public class NodeHelloMessage extends Message implements Serializable {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 17644242180470L;
+	private static final long serialVersionUID = 17622242180470L;
 	
 	public NodeHelloMessage(){
 		

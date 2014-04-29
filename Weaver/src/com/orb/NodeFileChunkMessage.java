@@ -11,7 +11,7 @@ public class NodeFileChunkMessage extends Message implements Serializable {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 17663513570L;
+	private static final long serialVersionUID = 176633570L;
 	
 	public NodeFileChunkMessage(){
 		

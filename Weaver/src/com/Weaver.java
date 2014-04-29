@@ -1,15 +1,14 @@
 package com;
 
-import java.util.List;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.network.IPChecker;
 import com.network.Node;
 import com.network.NodeInfo;
 import com.network.NodeListMessage;
@@ -24,7 +23,9 @@ import com.orb.WeaverOrb;
  * 
  * 
  * 
- * 
+ * TODO: smarter node lists... include a 'last timestamp verified' to know when a node is too old 
+ * -optimize
+ * -make this work with multiple seeders, should DL faster for peers then
  * 
  * 
  */
@@ -38,6 +39,8 @@ public class Weaver extends Thread {
 
 	int port = 32359;// default port
 
+	WeaverStatus currentStatus = WeaverStatus.INITIALIZING;
+	int activeConnectionCount; //seeders or leechers interacting with
 	// Seeder[] otherSeeders;
 	// String[] otherLeechers;
 
@@ -80,16 +83,28 @@ public class Weaver extends Thread {
 		return isSeeding;
 	}
 	
-	public float getLeechProgress(){
+	public float getLeechProgress() {
+		try{
 		return getRegisteredOrb().getChunkManager().getChunkProgress();
+		}catch(Exception e){
+			
+		}
+		
+		return 0f;
 	}
 	
+	public WeaverStatus getStatus(){
+		return currentStatus;
+	}
+	
+	public int getActiveConnectionCount(){
+		return activeConnectionCount;
+	}
 	
 
 	@Override
 	public void run() {
-		System.out.println("Weaver started");
-
+		
 		try {
 			startServer();
 		} catch (Exception e) {
@@ -116,8 +131,10 @@ public class Weaver extends Thread {
 	 */
 	private void updateNodes() throws Exception {
 		for (Node node : otherNodes) {
-			if (node != null) {
+			if (node != null ) {
+				if(node.isActive()){
 				node.update();
+				}
 			}
 
 		}
@@ -136,7 +153,7 @@ public class Weaver extends Thread {
 		for (int i = 0; i < masterNodeAddresses.length; i++) {
 			if (masterNodeAddresses[i] != null) {
 				if(! myNode.getNodeInfo().equals( masterNodeAddresses[i] ) ){
-				addNode(new Node(masterNodeAddresses[i], this));
+				addNode(new Node(masterNodeAddresses[i], this),true);
 				}
 			}
 		}
@@ -157,7 +174,7 @@ public class Weaver extends Thread {
 						// keep adding nodes as they connect
 						Socket clientSocket = sSock.accept();
 
-						addNode(new Node(clientSocket, weav));
+						addNode(new Node(clientSocket, weav),true);
 
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
@@ -201,16 +218,29 @@ public class Weaver extends Thread {
 		//return IPChecker.getIp();  //remote 
 	}
 
-	private void addNode(Node newNode) {
+	private void addNode(Node newNode, boolean force) {
 
 		// lock.lock();
 		// try{
 
-		for (Node node : otherNodes) {
-			if (node != null) {
-				if (node.equals(newNode)) {
-					System.out.println("node already exists!");
+		for (int i=0;i < otherNodes.length; i++ ) {
+			
+			if (otherNodes[i] != null) {
+				if (otherNodes[i].equals(newNode) ) {
+					
+					if(otherNodes[i].isActive()){
+						System.out.println("node already exists and is active!");
+					if(force){
+						System.out.println("forcing node recreation");
+						otherNodes[i] = newNode;//force creation of new node if they are directly contacting you
+					}
+					}else{
+						System.out.println("rebuilding node");
+						otherNodes[i] = newNode;
+					}
+					
 					return;
+					
 				}
 			}
 		}
@@ -251,7 +281,7 @@ public class Weaver extends Thread {
 		NodeInfo[] newNodes = mess.getNodeInfo();
 		for (NodeInfo info : newNodes) {
 			if (info != null) {
-				addNode(new Node(info.getAddress(), info.getPort(), this));
+				addNode(new Node(info.getAddress(), info.getPort(), this),false);
 			}
 		}
 
@@ -348,6 +378,10 @@ public class Weaver extends Thread {
 	
 	public boolean getIsSeeding(){
 		return isSeeding;
+	}
+
+	public void setStatus(WeaverStatus status) {
+		this.currentStatus = status;
 	}
 
 }

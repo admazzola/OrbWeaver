@@ -3,6 +3,8 @@ package com.network;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.Weaver;
 import com.orb.NodeFileChunkMessage;
@@ -29,6 +31,7 @@ public class MessageListener extends Thread{
 	
 	public boolean active = true;
 	
+	final Lock processMessageLock = new ReentrantLock();
 	@Override
 	public void run(){
 		
@@ -43,20 +46,21 @@ public class MessageListener extends Thread{
 		}
 		
 		
-		while(active){
+		while(node.isActive() ){
 			
-			try {
+			try {				
 			processMessage(input);
 			} catch (Exception e) {	
-				active = false;
-				e.printStackTrace();
-			}	
+				node.setActive(false);
+				System.err.println("deactivating stream from "+ node.getNodeInfo());
+				//e.printStackTrace();
+			}
 			
 			
 		}
 	}
 
-	//final Lock lock = new ReentrantLock();
+	
 	
 	private void processMessage(ObjectInputStream o) throws Exception{
 			

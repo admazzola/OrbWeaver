@@ -11,8 +11,7 @@ public class ChunkManager {
 
 	WeaverOrb weaverOrb;
 	public ChunkManager(WeaverOrb weaverOrb){
-		this.weaverOrb=weaverOrb;
-		
+		this.weaverOrb=weaverOrb;		
 	}
 	
 	Chunk chunks[];
@@ -68,13 +67,15 @@ public class ChunkManager {
 	int nextChunkNeededCounter = 0; // for leecher
 	public int getNextLeechChunkId(){
 
-		if(nextChunkNeededCounter >= totalChunkCount){
-			nextChunkNeededCounter = 0; // cycle around
+		int answer = -1;
+	for(int i=0;i<chunks.length;i++){
+		if(chunks[i] == null){
+			answer = i;
+			break;
 		}
+	}
 		
-		nextChunkNeededCounter++;
-		
-		return nextChunkNeededCounter - 1;
+		return answer;
 	}
 
 	
@@ -120,8 +121,7 @@ public class ChunkManager {
 	private int countCompletedChunks() {
 		int count = 0;
 		for(Chunk chunk : chunks){
-			if(chunk!=null ){
-				System.out.println("have chunk " + chunk.id);
+			if(chunk!=null ){				
 				count++;
 			}			
 		}

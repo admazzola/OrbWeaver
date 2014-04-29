@@ -24,6 +24,10 @@ public class Node {
 	int port;//their port
 	
 	long uniqueId;
+	
+	
+
+	boolean active = true;
 
 	private Socket socket;
 	private  ObjectInputStream input = null;
@@ -51,6 +55,7 @@ public class Node {
 	}
 	
 	
+	
 	public Node(String addr, int port, Weaver weaver) {//I learned about this node via data transfer
 		this.weaver = weaver;
 		
@@ -76,7 +81,7 @@ public class Node {
 	public void update() throws Exception {
 		
 		//System.out.println(address);
-	
+		
 		
 		
 		if(socket == null){
@@ -124,20 +129,24 @@ public class Node {
 		
 	}
 	
-	
+	String lastSentHash = null;
 	public void updateSeeding() throws Exception{//from orb
-				
+		//if(!isActive()){
+		//	return;
+		///}
 		
 		if(socket != null){
 			
 			if(weaver.getMyNode().isMasterNode() ){//if I am a master	
 				String fileHash = weaver.getRegisteredOrb().getFileHash();
 
-					if(fileHash!=null){
+					if(fileHash!=null && !fileHash.equals(lastSentHash)){
 						
 						
 						sendMessage(new NodeFileHashMessage(fileHash, weaver.getRegisteredOrb().getChunkManager().getTotalChunkCount() ) );
-					//sends the correct file hash to others so they know to start seeding or leeching.
+						lastSentHash = fileHash;
+						
+						//sends the correct file hash to others so they know to start seeding or leeching.
 					}
 					
 			}
@@ -145,10 +154,13 @@ public class Node {
 			
 			
 		}else{
+			//this.setActive(false);
 			System.err.println("cannot seed, no socket connection");			
 		}
 		
 	}
+	
+	
 	
 	public void updateLeeching() throws Exception{//from orb
 		//request chunks from seeders in list, they will respond with chunk
@@ -156,31 +168,40 @@ public class Node {
 		int chunkId = weaver.getRegisteredOrb().getChunkManager().getNextLeechChunkId();
 		if(socket != null){
 			if(chunkId > -1){
-				System.out.println( "requesting chunk from " + address + ":" + port);
+				System.out.println( "requesting chunk"+chunkId+" from " + address + ":" + port);
 				//ask this seeder node for the next needed chunk and send them my info
 				sendMessage(new NodeFileChunkRequestMessage( chunkId, weaver.getMyNodeInfo() ) );
+			}else{
+				System.out.println("I have all chunks");
 			}
 		}
 	}
 	
 	
 	public void sendMessage(Message m) throws Exception {
-		
+		System.out.println("sending message "+m.getClass().getName());
 			if(! weaver.getMyNodeInfo().equals(getNodeInfo()) ){
-			System.out.println( getNodeInfo() );
+		
 			
-				try{
+				
 				output.writeObject(m);
-				}catch(Exception e){
-					//output.close();
-					
-					//this.setActive(false);
-				}
+				
 		
 			}
 	}
 
 
+	public boolean isActive() {
+		return active;
+	}
+
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	
+	
 	public NodeInfo getNodeInfo(){ //broken?
 		if(address == null){
 			return null;
@@ -225,7 +246,7 @@ public class Node {
 	public boolean isMasterNode() {
 		
 		for(NodeInfo info: weaver.getMasterAddresses() ){
-			System.out.println(this.address + " " + this.port );
+			//System.out.println(this.address + " " + this.port );
 			if(this.address.equals(info.getAddress()) && this.port == info.getPort()){
 				return true;
 			}

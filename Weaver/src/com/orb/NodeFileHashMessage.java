@@ -17,7 +17,7 @@ public class NodeFileHashMessage extends Message implements Serializable {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 176325131570L;
+	private static final long serialVersionUID = 172348131570L;
 	
 	public NodeFileHashMessage(){
 		

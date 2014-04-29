@@ -1,6 +1,7 @@
 package com.orb;
 
 import com.Weaver;
+import com.WeaverStatus;
 import com.network.Node;
 import com.network.NodeInfo;
 
@@ -13,8 +14,12 @@ import com.network.NodeInfo;
  * [SHA-256] hash of that file with the hash of the file on the master nodes.  The master nodes need to have
  * the file and need to be running Orb. 
  */
+
+
 public class WeaverOrb extends Thread {
 
+	public static final boolean DEBUG = true; //makes this run slow so you can read the console
+	
 	String filePath = null;
 
 	String fileHash = null;
@@ -86,6 +91,7 @@ public class WeaverOrb extends Thread {
 				if(  weaver.getIsSeeding() ){
 					//init seeding
 					getChunkManager().generateChunksFromFile();
+					
 				}
 
 			} else {
@@ -96,18 +102,30 @@ public class WeaverOrb extends Thread {
 
 					for (Node node : weaver.getNodes()) {
 						if (node != null) {
+							try{
 							node.updateSeeding();
+							}catch(Exception e){
+								System.err.println("failed to seed to node "+ node);
+							}
 						}
 
 					}
 					
 					
+					weaver.setStatus(WeaverStatus.SEEDING);
+					
 					if(weaver.getQueuedChunkRequests()!=null){
 						System.out.println( " have a queued chunk request ");
 					for( QueuedChunkRequest qcr :   weaver.getQueuedChunkRequests()){
-						if(qcr != null && getNodeFromInfo(qcr.senderInfo)!=null ){		
-											
+						if(qcr != null && getNodeFromInfo(qcr.senderInfo)!=null  ){
+							System.out.println("sending chunk message "+ qcr.chunkId);
+							
+							try{
 							getNodeFromInfo(qcr.senderInfo).sendMessage(new NodeFileChunkMessage( weaver.getRegisteredOrb().getChunkManager().getChunkFromId(qcr.chunkId) ) );
+							}catch(Exception e){
+								System.err.println("Failed to fulfill QCR "+ qcr);
+								e.printStackTrace();
+							}
 						}else{
 							System.err.println("got chunk request but cant locate node to sent it to");
 						}
@@ -127,7 +145,7 @@ public class WeaverOrb extends Thread {
 
 					}
 					
-					
+					weaver.setStatus(WeaverStatus.LEECHING);
 					chunkManager.updateLeeching();
 					//shouldCheckVersion = true; //keep checking version as you update leeching until you become a seeder
 					
@@ -153,12 +171,16 @@ public class WeaverOrb extends Thread {
 					node.update();
 				}
 			}*/
-				System.out.println("waiting for unique file hash from Master Node with file");
-
+				//System.out.println("waiting for unique file hash from Master Node with file");
+				weaver.setStatus(WeaverStatus.WAITINGFORHASH);
 			
 		}
 
-		Thread.sleep(500);
+		if(DEBUG){
+			Thread.sleep(1000);
+		}
+		
+		Thread.sleep(10);//breaks if any slower.. need to make sure a seeder is only working on one packet at a time for me
 
 	}
 
@@ -166,7 +188,7 @@ public class WeaverOrb extends Thread {
 		
 		for(Node node : weaver.getNodes()){
 			
-			if(node!=null && senderInfo!=null && senderInfo.equals(node.getNodeInfo())){
+			if(node!=null && node.isActive() && senderInfo!=null && senderInfo.equals(node.getNodeInfo())){
 				return node;
 			}	
 			
@@ -188,7 +210,7 @@ public class WeaverOrb extends Thread {
 		try {
 			setFileHash(versionManager.getGameJarHash());
 		} catch (Exception e) {
-			System.err.println("I am a master node but I dont have the master file!");
+			System.err.println("I am a master node but I dont have the master file at "+getFilePath());
 			//e.printStackTrace();
 		}
 	}
