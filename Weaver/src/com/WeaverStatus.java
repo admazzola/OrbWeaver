@@ -5,5 +5,6 @@ public enum WeaverStatus {
 	WAITINGFORHASH,
 	SEEDING,
 	LEECHING,
+	NOTHING,
 	
 }

@@ -161,16 +161,23 @@ public class Node {
 	}
 	
 	
+	int lastChunkIdRequested = -1;
 	
 	public void updateLeeching() throws Exception{//from orb
 		//request chunks from seeders in list, they will respond with chunk
 	
 		int chunkId = weaver.getRegisteredOrb().getChunkManager().getNextLeechChunkId();
 		if(socket != null){
-			if(chunkId > -1){
+			if(chunkId > -1 ){
+				//if( (chunkId != lastChunkIdRequested || lastChunkIdRequested == -1)){
+					System.out.println("Still need more chunks. Only have " + chunkId  );
+					
 				System.out.println( "requesting chunk"+chunkId+" from " + address + ":" + port);
 				//ask this seeder node for the next needed chunk and send them my info
 				sendMessage(new NodeFileChunkRequestMessage( chunkId, weaver.getMyNodeInfo() ) );
+				
+				lastChunkIdRequested= chunkId;
+				//}
 			}else{
 				System.out.println("I have all chunks");
 			}

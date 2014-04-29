@@ -18,7 +18,7 @@ import com.network.NodeInfo;
 
 public class WeaverOrb extends Thread {
 
-	public static final boolean DEBUG = true; //makes this run slow so you can read the console
+	public static final boolean DEBUG = false; //makes this run slow so you can read the console
 	
 	String filePath = null;
 
@@ -99,6 +99,11 @@ public class WeaverOrb extends Thread {
 				
 
 				if ( weaver.getIsSeeding() ) {
+					
+					if(! weaver.getMyNode().isMasterNode()){
+						weaver.setStatus(WeaverStatus.NOTHING);
+						return;
+					}
 
 					for (Node node : weaver.getNodes()) {
 						if (node != null) {
@@ -180,7 +185,7 @@ public class WeaverOrb extends Thread {
 			Thread.sleep(1000);
 		}
 		
-		Thread.sleep(10);//breaks if any slower.. need to make sure a seeder is only working on one packet at a time for me
+		Thread.sleep(20);//breaks if any slower.. need to make sure a seeder is only working on one packet at a time for me
 
 	}
 
@@ -214,7 +219,6 @@ public class WeaverOrb extends Thread {
 			//e.printStackTrace();
 		}
 	}
-
 	public String getFileHash() {
 		return fileHash;
 	}

@@ -71,7 +71,10 @@ public class ChunkManager {
 	for(int i=0;i<chunks.length;i++){
 		if(chunks[i] == null){
 			answer = i;
+			
+			//if(Math.random() < 0.2f){  //ask for random packets from all diff people 
 			break;
+			//}
 		}
 	}
 		
@@ -98,7 +101,7 @@ public class ChunkManager {
 		
 		if(currentCompletedChunks < totalChunkCount){
 			chunkProgress = currentCompletedChunks / (float)totalChunkCount;
-			System.out.println("Still need more chunks. Only have " + currentCompletedChunks );
+			
 		}else{
 			chunkProgress = 1f;
 			

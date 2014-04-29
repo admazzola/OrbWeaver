@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.network.IPChecker;
 import com.network.Node;
 import com.network.NodeInfo;
 import com.network.NodeListMessage;
@@ -214,8 +215,8 @@ public class Weaver extends Thread {
 	}
 
 	private String getMyIPAddress() throws Exception {
-		return InetAddress.getLocalHost().getHostAddress(); //local
-		//return IPChecker.getIp();  //remote 
+		//return InetAddress.getLocalHost().getHostAddress(); //local
+		return IPChecker.getIp();  //remote 
 	}
 
 	private void addNode(Node newNode, boolean force) {
@@ -247,7 +248,7 @@ public class Weaver extends Thread {
 
 		otherNodes[nodeCount] = newNode;
 		nodeCount++;
-		System.out.println("added a new node!! " + nodeCount);
+		System.out.println("added a new node!! " + nodeCount + newNode.getNodeInfo());
 
 		// }finally{
 		// lock.unlock();
@@ -350,10 +351,12 @@ public class Weaver extends Thread {
 			return null;
 		}
 
+		//I think im getting stuck in dead lock??
 		chunkRequestQueueLock.lock();
 		try {
 			array = new QueuedChunkRequest[queuedChunkRequest.size()];
 			queuedChunkRequest.toArray(array);//fill the array
+			System.out.println(queuedChunkRequest.size());
 		} finally {
 			chunkRequestQueueLock.unlock();
 		}
